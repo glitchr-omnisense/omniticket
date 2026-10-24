@@ -1,0 +1,53 @@
+{
+    "name": "omniscient/omniticket",
+    "type": "library",
+    "description": "Omniticket: tickets sold elsewhere, read and checked under any PHP host - the events a ticketing service sells (dates, rates, places left, sold out, where to buy), who comes (attendees), and whether a ticket code is valid at the door, one contract whoever sells them. Providers are packages of their own (omniticket/weezevent, omniticket/billetweb, omniticket/helloasso, omniticket/eventbrite, omniticket/ticketmaster); the Symfony and Laravel bridges live in omnibridge.",
+    "keywords": ["ticketing", "tickets", "events", "attendees", "check-in", "weezevent", "billetweb", "helloasso", "eventbrite", "ticketmaster", "framework-agnostic", "omniticket"],
+    "homepage": "https://github.com/glitchr-studio/omniticket",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Marco Meyer",
+            "email": "marco.meyer@glitchr.io"
+        }
+    ],
+    "require": {
+        "php": ">=8.2",
+        "symfony/http-client-contracts": "^3.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^11.0",
+        "symfony/http-client": "^6.4|^7.0|^8.0"
+    },
+    "suggest": {
+        "omniticket/billetweb": "Billetweb: events, rates and places left, attendees, ticket check",
+        "omniticket/eventbrite": "Eventbrite: an organization's events, ticket classes, attendees, ticket check",
+        "omniticket/helloasso": "HelloAsso: an association's event forms, tiers, registrations, ticket check",
+        "omniticket/ticketmaster": "Ticketmaster's Discovery API: public events, read-only",
+        "omniticket/weezevent": "Weezevent: events, rates, sessions, participants, ticket check",
+        "omniscient/omnibridge": "The host contracts; omnibridge/symfony and omnibridge/laravel wire a family into their host"
+    },
+    "autoload": {
+        "psr-4": {
+            "Omniticket\\": ""
+        },
+        "exclude-from-classmap": [
+            "/Tests/",
+            "/docker/",
+            "/bin/"
+        ]
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Omniticket\\Tests\\": "Tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-1.x": "1.x-dev"
+        }
+    },
+    "config": {
+        "sort-packages": true
+    }
+}

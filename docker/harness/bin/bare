@@ -1,0 +1,77 @@
+#!/usr/bin/env php
+<?php
+
+/*
+ * Omniticket in plain PHP: no bundle, no container, no framework. A
+ * Registry with the fixed provider: the upcoming events listed (a past one
+ * left out, a keyword), one read whole, its attendees, three codes checked
+ * at the door; then a JSON API answered through a recorded HTTP client - an
+ * answer read with types, a refused key and a missing event turned into
+ * omniticket's exceptions. Prints what happened and every class and file
+ * PHP loaded, as JSON.
+ */
+
+use Omniticket\Exception\InvalidKeyException;
+use Omniticket\Exception\NotFoundException;
+use Omniticket\Http\JsonApi;
+use Omniticket\Model\Attendee;
+use Omniticket\Model\AttendeeStatus;
+use Omniticket\Model\Availability;
+use Omniticket\Model\Event;
+use Omniticket\Model\EventQuery;
+use Omniticket\Model\EventStatus;
+use Omniticket\Model\Money;
+use Omniticket\Model\Rate;
+use Omniticket\Registry;
+use Omniticket\Testing\FixedTicketingFactory;
+use Omniticket\Testing\RecordedHttpClient;
+
+require getenv('OMNITICKET_AUTOLOAD') ?: '/harness/vendor/autoload.php';
+
+$now = new DateTimeImmutable('2026-11-01 12:00:00', new DateTimeZone('Europe/Paris'));
+$events = [
+    new Event('past', 'Last season', new DateTimeImmutable('2026-06-20 20:00:00'), status: EventStatus::Ended),
+    new Event('1235', 'Retro future shock', new DateTimeImmutable('2026-12-31 20:00:00'), new DateTimeImmutable('2027-01-01 02:00:00'), EventStatus::OnSale, 'https://tickets.example.org/1235', 'Paris',
+        Availability::of(null, 200, 120), [new Rate('124', 'Plein tarif', Money::fromMajor('25.00', 'EUR'), Availability::of(90, 100)), new Rate('125', 'Réduit', Money::fromMajor(18, 'EUR'), Availability::of(0, 100))]),
+    new Event('1236', 'Matinée', new DateTimeImmutable('2027-01-02 11:00:00'), status: EventStatus::SoldOut, availability: Availability::of(0, 80)),
+];
+$attendees = ['1235' => [
+    new Attendee('1', '1235', '4475320', 'Jeanne', 'Dupont', 'jeanne@example.org', 'Plein tarif'),
+    new Attendee('2', '1235', '4475321', 'Paul', 'Martin', rate: 'Réduit', status: AttendeeStatus::CheckedIn, checkedInAt: new DateTimeImmutable('2026-12-31 20:12:00')),
+    new Attendee('3', '1235', '4475322', 'Ana', 'Lima', status: AttendeeStatus::Refunded),
+]];
+$registry = new Registry([new FixedTicketingFactory($events, $attendees)], ['box_office' => ['factory' => 'fixed']]);
+
+$catalog = $registry->catalog('box_office');
+$report['upcoming'] = array_map(static fn (Event $e) => $e->id, [...$catalog->events(new EventQuery(now: $now))]);
+$report['keyword'] = array_map(static fn (Event $e) => $e->id, [...$catalog->events(new EventQuery(keyword: 'matin', now: $now))]);
+$event = $catalog->event('1235');
+$report['event'] = $event->toArray();
+$report['onSale'] = $event->onSale();
+$report['lowestPrice'] = $event->lowestPrice()?->major();
+$report['attendees'] = array_map(static fn (Attendee $a) => [$a->name(), $a->status->value], [...$registry->attendees('box_office')->attendees('1235')]);
+foreach (['4475320', '4475321', '4475322', '0000000'] as $code) {
+    $report['checks'][$code] = $registry->checker('box_office')->check('1235', $code)->result->value;
+}
+
+$http = RecordedHttpClient::routes([
+    'GET /api/events' => '[{"id":"1235","name":"Retro future shock","start":"2026-12-31 20:00:00"}]',
+    'GET /api/private' => [401, '{"error":"invalid key"}'],
+]);
+$api = new JsonApi($http, 'Example');
+$answer = $api->request('GET', 'https://api.example.org/api/events', [], 'the events');
+$report['api'] = [$answer->items()[0]->string('name'), $answer->items()[0]->date('start', new DateTimeZone('Europe/Paris'))?->format(DATE_ATOM)];
+foreach (['/api/private' => InvalidKeyException::class, '/api/event/9' => NotFoundException::class] as $path => $expected) {
+    try {
+        $api->request('GET', 'https://api.example.org'.$path, [], 'it');
+        $report['errors'][$path] = null;
+    } catch (Throwable $e) {
+        $report['errors'][$path] = [$e::class === $expected, $e->getMessage()];
+    }
+}
+
+echo json_encode($report + ['loaded' => [
+    'symbols' => [...get_declared_classes(), ...get_declared_interfaces(), ...get_declared_traits()],
+    'files' => array_values(array_filter(array_map('realpath', get_included_files()))),
+    'eager' => array_values(array_filter(array_map('realpath', is_file($f = dirname((string) (new ReflectionClass(Composer\Autoload\ClassLoader::class))->getFileName()).'/autoload_files.php') ? array_values(require $f) : []))),
+]], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT), "\n";
