@@ -62,9 +62,17 @@ scanning application (the provider's own marks tickets as scanned), an agenda
 
 ## Documentation
 
-- [Installation, in plain PHP](docs/installation.md)
-- [Writing a provider](docs/providers.md)
+- [Overview](docs/index.md): the providers and what each answers
+- [Installation](docs/installation.md): a first script in plain PHP
+- [Symfony](docs/symfony.md) and [Laravel](docs/laravel.md): the registry as a service, by hand
+- [Concepts](docs/concepts.md): contracts, capabilities, factories, the registry, every model
+- [Events](docs/usage-events.md) and [attendees and checks](docs/usage-attendees.md)
+- [Configuration reference](docs/configuration.md): every provider's options
+- [Errors](docs/errors.md)
+- [Testing](docs/testing.md): the fixed provider, the recorded HTTP client, the load check
 - [The harness](docs/harness.md)
+- [Writing a provider](docs/providers.md)
+- [Verified, and not](docs/verified.md)
 
 ## Verified, and not
 
