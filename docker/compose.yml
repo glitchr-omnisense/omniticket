@@ -1,4 +1,4 @@
-# omniscient/omniticket with every omniticket/* provider:
+# omnisense/omniticket with every omniticket/* provider:
 #
 #   docker compose run --rm omniticket test       # every package's tests (recorded answers, no network)
 #   docker compose run --rm omniticket bare       # plain PHP: events listed, read, attendees, tickets checked - and what PHP loaded
@@ -13,7 +13,7 @@ name: omniticket-harness
 services:
   omniticket:
     build: .
-    image: omniscient/omniticket-harness
+    image: omnisense/omniticket-harness
     # One service, no server beside it: Docker's default bridge, no network of its own to create.
     network_mode: bridge
     env_file:

@@ -8,7 +8,7 @@ use Omniticket\Testing\LoadCheck;
 use PHPUnit\Framework\TestCase;
 
 /**
- * omniscient/omniticket with no framework: in PHP processes of their own
+ * omnisense/omniticket with no framework: in PHP processes of their own
  * (this one has loaded PHPUnit), the harness's bare script lists, reads
  * and checks through a Registry and calls a recorded JSON API - and every
  * class of the package is loaded. Nothing may come from outside the

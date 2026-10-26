@@ -1,9 +1,9 @@
 {
-    "name": "omniscient/omniticket",
+    "name": "omnisense/omniticket",
     "type": "library",
     "description": "Omniticket: tickets sold elsewhere, read and checked under any PHP host - the events a ticketing service sells (dates, rates, places left, sold out, where to buy), who comes (attendees), and whether a ticket code is valid at the door, one contract whoever sells them. Providers are packages of their own (omniticket/weezevent, omniticket/billetweb, omniticket/helloasso, omniticket/eventbrite, omniticket/ticketmaster); the Symfony and Laravel bridges live in omnibridge.",
     "keywords": ["ticketing", "tickets", "events", "attendees", "check-in", "weezevent", "billetweb", "helloasso", "eventbrite", "ticketmaster", "framework-agnostic", "omniticket"],
-    "homepage": "https://github.com/glitchr-studio/omniticket",
+    "homepage": "https://github.com/glitchr-omnisense/omniticket",
     "license": "MIT",
     "authors": [
         {
@@ -25,7 +25,10 @@
         "omniticket/helloasso": "HelloAsso: an association's event forms, tiers, registrations, ticket check",
         "omniticket/ticketmaster": "Ticketmaster's Discovery API: public events, read-only",
         "omniticket/weezevent": "Weezevent: events, rates, sessions, participants, ticket check",
-        "omniscient/omnibridge": "The host contracts; omnibridge/symfony and omnibridge/laravel wire a family into their host"
+        "omnisense/omnibridge": "The host contracts; omnibridge/symfony and omnibridge/laravel wire a family into their host"
+    },
+    "replace": {
+        "omniscient/omniticket": "self.version"
     },
     "autoload": {
         "psr-4": {

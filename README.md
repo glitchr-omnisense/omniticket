@@ -1,4 +1,4 @@
-# omniscient/omniticket
+# omnisense/omniticket
 
 Tickets sold elsewhere, read and checked under any PHP host. A site that shows where a box office
 stands or welcomes its guests at the door asks the same three questions whoever sells the
@@ -47,11 +47,11 @@ $check = $registry->checker('box_office')->check('1235', $scanned); // valid, al
 
 | Package | Contracts | Notes |
 |---|---|---|
-| [omniticket/weezevent](https://github.com/glitchr-studio/omniticket-weezevent) | catalog, attendees, check | partner API key + organizer token; incremental |
-| [omniticket/billetweb](https://github.com/glitchr-studio/omniticket-billetweb) | catalog, attendees, check | read-only key; lookup by barcode; incremental; 10 attendee calls a minute |
-| [omniticket/helloasso](https://github.com/glitchr-studio/omniticket-helloasso) | catalog, attendees, check | OAuth2 client credentials; an event is a form of type Event |
-| [omniticket/eventbrite](https://github.com/glitchr-studio/omniticket-eventbrite) | catalog, attendees, check | private or OAuth token; incremental |
-| [omniticket/ticketmaster](https://github.com/glitchr-studio/omniticket-ticketmaster) | catalog | Discovery API: public events, read-only |
+| [omniticket/weezevent](https://github.com/glitchr-omnisense/omniticket-weezevent) | catalog, attendees, check | partner API key + organizer token; incremental |
+| [omniticket/billetweb](https://github.com/glitchr-omnisense/omniticket-billetweb) | catalog, attendees, check | read-only key; lookup by barcode; incremental; 10 attendee calls a minute |
+| [omniticket/helloasso](https://github.com/glitchr-omnisense/omniticket-helloasso) | catalog, attendees, check | OAuth2 client credentials; an event is a form of type Event |
+| [omniticket/eventbrite](https://github.com/glitchr-omnisense/omniticket-eventbrite) | catalog, attendees, check | private or OAuth token; incremental |
+| [omniticket/ticketmaster](https://github.com/glitchr-omnisense/omniticket-ticketmaster) | catalog | Discovery API: public events, read-only |
 
 - **Hosts**: no bridge yet. omnibridge/symfony and omnibridge/laravel wire the family when the
   first site needs it; nothing of a framework here.
@@ -83,7 +83,7 @@ scanning application (the provider's own marks tickets as scanned), an agenda
 
 ## Responsibility
 
-omniscient/omniticket and its omniticket/* providers are unofficial clients, affiliated with none
+omnisense/omniticket and its omniticket/* providers are unofficial clients, affiliated with none
 of the services they reach. The MIT licence covers the code only and grants no right to any
 service or its data - attendees' names and emails are personal data, whose processing is the
 application's responsibility. Whoever runs them complies with each service's terms (named in each

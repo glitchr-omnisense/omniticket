@@ -1,6 +1,6 @@
 # Installation, in plain PHP
 
-    composer require omniscient/omniticket omniticket/billetweb symfony/http-client
+    composer require omnisense/omniticket omniticket/billetweb symfony/http-client
 
 Any implementation of `Symfony\Contracts\HttpClient\HttpClientInterface` does: Symfony's
 `HttpClient::create()`, or a `MockHttpClient` in a test.
