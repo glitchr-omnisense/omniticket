@@ -6,6 +6,7 @@ use Omniticket\AttendeeListInterface;
 use Omniticket\Capabilities;
 use Omniticket\EventCatalogInterface;
 use Omniticket\Exception\NotFoundException;
+use Omniticket\Exception\NotSupportedException;
 use Omniticket\Model\Attendee;
 use Omniticket\Model\Check;
 use Omniticket\Model\Event;
@@ -57,8 +58,13 @@ final class FixedTicketing implements EventCatalogInterface, AttendeeListInterfa
         throw NotFoundException::of('Fixed', 'event "'.$id.'"');
     }
 
+    /** Every attendee given for the event; not incremental: a read since a date is refused. */
     public function attendees(string $eventId, ?\DateTimeImmutable $updatedSince = null): iterable
     {
+        if (null !== $updatedSince) {
+            throw NotSupportedException::capability($this, 'fixed', 'read attendees changed since a moment (it is not incremental)');
+        }
+
         return $this->attendees[$eventId] ?? [];
     }
 

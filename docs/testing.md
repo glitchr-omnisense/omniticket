@@ -41,12 +41,9 @@ $registry->checker('box_office')->check('1235', '4475321')->result;             
 
 `events()` applies the query to the events given (give `now` for a fixed clock); `event()`
 throws `NotFoundException` for an id not given; `check()` is `Check::among()` over the
-attendees. The application keeps the name it uses; only the factory changes.
-
-> [!WARNING]
-> Known defect: `FixedTicketing` says it is not incremental (`capabilities()->incremental` is
-> false) but `attendees($eventId, $updatedSince)` ignores the date and returns every attendee,
-> where the contract asks for a `NotSupportedException`.
+attendees. It is not incremental (`capabilities()->incremental` false): `attendees($eventId,
+$updatedSince)` with a date is a `NotSupportedException`, as on a provider that cannot read since
+a moment. The application keeps the name it uses; only the factory changes.
 
 ## The recorded HTTP client
 

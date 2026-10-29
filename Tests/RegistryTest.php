@@ -22,6 +22,17 @@ use PHPUnit\Framework\TestCase;
 
 final class RegistryTest extends TestCase
 {
+    /** Not incremental, as its capabilities say: a read since a date is refused, as the contract asks. */
+    public function testTheFixedProviderRefusesAnIncrementalRead(): void
+    {
+        $attendees = (new Registry([new FixedTicketingFactory([], ['1' => [new \Omniticket\Model\Attendee('a', '1', 'T1')]])], ['b' => ['factory' => 'fixed']]))->attendees('b');
+
+        self::assertCount(1, [...$attendees->attendees('1')]);
+        self::assertFalse($attendees->capabilities()->incremental);
+        $this->expectException(NotSupportedException::class);
+        [...$attendees->attendees('1', new \DateTimeImmutable('2026-10-01'))];
+    }
+
     public function testProvidersByNameEachBuiltOnce(): void
     {
         $registry = new Registry([new FixedTicketingFactory([new Event('1', 'Show')]), self::catalogOnly()], [
