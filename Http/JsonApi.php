@@ -33,7 +33,10 @@ final class JsonApi
             $status = $response->getStatusCode();
             $body = $response->getContent(false);
         } catch (TransportExceptionInterface $e) {
-            throw new UnreachableException(\sprintf('%s could not be reached for %s: %s', $this->provider, $what, $e->getMessage()), 0, $e);
+            // The client's message and exception with the request's secrets masked, no trace keeping the options.
+            $secrets = Redaction::secrets($url, $options);
+
+            throw Redaction::withoutArguments(new UnreachableException(\sprintf('%s could not be reached for %s: %s', $this->provider, $what, Redaction::text($e->getMessage(), $secrets)), 0, Redaction::copy($e, $secrets)));
         }
         $decoded = json_decode($body, true);
         $message = self::message(Data::of($decoded));

@@ -15,7 +15,7 @@ Every exception Omniticket throws implements `Omniticket\Exception\OmniticketExc
 | `ProviderException` | `\RuntimeException` | the provider answered, and not with what was asked: a status of 400 or more, an answer that is not JSON, no token in a token answer. Its code is the HTTP status |
 | `InvalidKeyException` | `ProviderException` | 401 or 403: a wrong or revoked key, a token past its time, a scope not granted |
 | `NotFoundException` | `ProviderException` | 404, or an event the provider does not list: nothing under that id |
-| `UnreachableException` | `\RuntimeException` | the provider could not be reached: a network error, a timeout |
+| `UnreachableException` | `\RuntimeException` | the provider could not be reached: a network error, a timeout; a copy of the HTTP client's exception is the previous one ([no secret in it](#no-secret-in-a-failure)) |
 
 Messages, as `JsonApi` and the providers write them (run on recorded answers on 2026-10-26):
 
@@ -35,6 +35,16 @@ The provider's own message is taken from the answer under the names APIs give it
 ([Concepts](concepts.md#supportdata-and-httpjsonapi)). A 429 (a rate limit) is a
 `ProviderException` with code 429. An `events()` listing throws while it is iterated, not when it
 is called.
+
+## No secret in a failure
+
+An `UnreachableException` keeps the request's secrets out. The HTTP client's message quotes the URL
+called: its key parameters (Ticketmaster's `apikey`), a password in its user part and every secret
+of the request's options (a bearer token, a key in a header) are masked (`apikey=***`,
+`Http\Redaction::text()`). The previous exception is a copy of the client's (`Redaction::copy()`:
+the same class and code, that message), and no trace of the chain keeps its arguments, where the
+query and headers stood: a log that writes the whole chain, arguments included
+(`zend.exception_ignore_args` off), holds no key.
 
 ## What to catch where
 
