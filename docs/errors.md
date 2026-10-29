@@ -44,7 +44,8 @@ of the request's options (a bearer token, a key in a header) are masked (`apikey
 `Http\Redaction::text()`). The previous exception is a copy of the client's (`Redaction::copy()`:
 the same class and code, that message), and no trace of the chain keeps its arguments, where the
 query and headers stood: a log that writes the whole chain, arguments included
-(`zend.exception_ignore_args` off), holds no key.
+(`zend.exception_ignore_args` off), holds no key. Nor does an error answered (a refused key, nothing there, a server error, a body
+that is not JSON): every exception `JsonApi::request()` throws leaves its trace's arguments out.
 
 ## What to catch where
 
