@@ -11,8 +11,14 @@ A provider is a package `omniticket/<name>` with a factory and a provider class:
   options and their defaults; `build()` returns the provider. The HTTP client comes through the
   factory's constructor, never created inside.
 - the provider implements the contracts it can answer - `EventCatalogInterface`,
-  `AttendeeListInterface`, `TicketCheckInterface` - and says so in `capabilities()`, with the
-  terms and the rate limits the service states.
+  `AttendeeListInterface`, `TicketCheckInterface` - and says so in `capabilities()`; its usage
+  policy is data, `policy.json` beside it (omnisense/contracts' schema, the terms read at their
+  source, `verifiedAt` the day; `unknown` for what they do not say), named in `composer.json`
+  (`extra.omnisense.policy`), read by `usagePolicy()` (`DeclaresUsagePolicyInterface`) and given
+  to `Capabilities` (`policy:`). See [usage policies](policies.md).
+- the factory passes `$c->backoff()` to the provider's `JsonApi`, so that a 429 and its
+  `Retry-After` hold every call; a request made inside an operation (a token) goes through
+  `$c->guard($policy)->call('token', ...)`.
 - calls go through `Http\JsonApi` (failures become the family's exceptions) and answers are read
   with `Support\Data`; a listing passes what the API can filter on and returns
   `$query->filter(...)`, so the core applies the whole query.

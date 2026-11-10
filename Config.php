@@ -2,74 +2,44 @@
 
 namespace Omniticket;
 
+use Omnisense\Contracts\Policy\InMemoryRateLimiter;
+use Omnisense\Contracts\Policy\PolicyGuard;
+use Omnisense\Contracts\Policy\RateLimiterInterface;
+use Omnisense\Contracts\Policy\UsagePolicy;
 use Omniticket\Exception\InvalidConfigException;
+use Omniticket\Exception\UsageLimitReachedException;
 
 /**
  * A provider's configuration while its factory builds it: the options
  * given, the factory's defaults under them, and the keys that must be
- * filled.
- *
- * @extends \ArrayObject<string, mixed>
+ * filled - omnisense/contracts' Config, with omniticket's prefix
+ * ("omniticket.factory_name", "omniticket.backoff"...) and its
+ * InvalidConfigException. Every provider takes two options besides its own:
+ * "policy" (the site's tightening of its usage policy) and "usage" (what
+ * the site says of itself: commercial, open_source, contract).
  */
-final class Config extends \ArrayObject
+final class Config extends \Omnisense\Contracts\Provider\Config
 {
+    /** @var string */
+    public const PREFIX = 'omniticket';
+
     /**
-     * Sets each key not set yet.
-     *
-     * @param array<string, mixed> $defaults
+     * A guard for the requests a provider makes inside its operations, which
+     * the registry's guard does not see (an access token renewed in the
+     * middle of a listing): its declared policy tightened by the "policy"
+     * option, counted in the registry's limiter (an in-memory one outside a
+     * registry), waiting with the provider's Backoff. The provider wraps
+     * such a request in call() under an operation of its own ("token").
      */
-    public function defaults(array $defaults): self
+    public function guard(UsagePolicy $policy): PolicyGuard
     {
-        foreach ($defaults as $key => $value) {
-            if (!$this->offsetExists($key)) {
-                $this[$key] = $value;
-            }
-        }
+        $limiter = $this->get($this->key('limiter'));
 
-        return $this;
+        return new PolicyGuard($policy->tighten($this->map('policy')), $limiter instanceof RateLimiterInterface ? $limiter : new InMemoryRateLimiter(), $this->backoff(), UsageLimitReachedException::class);
     }
 
-    /** @param list<string> $keys */
-    public function validateNotEmpty(array $keys): void
+    protected function invalid(string $message): \Throwable
     {
-        $missing = array_values(array_filter($keys, fn (string $key) => !isset($this[$key]) || '' === $this[$key] || [] === $this[$key]));
-        if ($missing) {
-            throw new InvalidConfigException(\sprintf('The "%s" provider needs: %s.', $this->string('omniticket.factory_name') ?? '?', implode(', ', $missing)));
-        }
-    }
-
-    public function get(string $key, mixed $default = null): mixed
-    {
-        return $this->offsetExists($key) ? $this[$key] : $default;
-    }
-
-    /** A string option; null when it is empty. */
-    public function string(string $key): ?string
-    {
-        $value = $this->get($key);
-
-        return \is_scalar($value) && '' !== (string) $value ? (string) $value : null;
-    }
-
-    public function int(string $key, int $default = 0): int
-    {
-        $value = $this->get($key);
-
-        return is_numeric($value) ? (int) $value : $default;
-    }
-
-    public function float(string $key, float $default = 0.0): float
-    {
-        $value = $this->get($key);
-
-        return is_numeric($value) ? (float) $value : $default;
-    }
-
-    /** A boolean option, as an environment variable gives it too: "1", "true", "yes", "on". */
-    public function bool(string $key): bool
-    {
-        $value = $this->get($key);
-
-        return \is_bool($value) ? $value : \is_scalar($value) && \in_array(strtolower(trim((string) $value)), ['1', 'true', 'yes', 'on'], true);
+        return new InvalidConfigException($message);
     }
 }

@@ -56,7 +56,10 @@ final class LoadCheck
 
     /**
      * The files loaded from outside the package and outside the vendor
-     * directories allowed.
+     * directories allowed. omnisense/contracts, the kernel every package of
+     * the family builds on through the core, is always allowed: installed
+     * (vendor/omnisense/contracts) or a checkout (the harness's
+     * /omnisense/contracts).
      *
      * @param list<string> $files
      * @param list<string> $allowed path fragments: "/vendor/psr/", "/vendor/omnisense/omniticket/"...
@@ -71,7 +74,7 @@ final class LoadCheck
             if (str_starts_with($file, $root) && !str_starts_with($file, $root.'vendor/')) {
                 return false;
             }
-            foreach ([...$allowed, '/vendor/composer/', '/vendor/autoload.php'] as $fragment) {
+            foreach ([...$allowed, '/vendor/composer/', '/vendor/autoload.php', '/vendor/omnisense/contracts/', '/omnisense/contracts/'] as $fragment) {
                 if (str_contains($file, $fragment)) {
                     return false;
                 }

@@ -10,12 +10,13 @@ Every exception Omniticket throws implements `Omniticket\Exception\OmniticketExc
 
 | Exception | Extends | When |
 |---|---|---|
-| `InvalidConfigException` | `\InvalidArgumentException` | a provider not configured, a factory not installed, a required option missing, no HTTP client given to a factory, Weezevent without a token or a login |
-| `NotSupportedException` | `\LogicException` | the registry's typed getter asked of a provider without that contract; an incremental read a provider cannot do (HelloAsso). Before any call |
+| `InvalidConfigException` | omnisense/contracts' (`\InvalidArgumentException`) | a provider not configured, a factory not installed, a required option missing, no HTTP client given to a factory, Weezevent without a token or a login |
+| `NotSupportedException` | omnisense/contracts' (`\LogicException`) | the registry's typed getter asked of a provider without that contract; an incremental read a provider cannot do (HelloAsso). Before any call |
 | `ProviderException` | `\RuntimeException` | the provider answered, and not with what was asked: a status of 400 or more, an answer that is not JSON, no token in a token answer. Its code is the HTTP status |
 | `InvalidKeyException` | `ProviderException` | 401 or 403: a wrong or revoked key, a token past its time, a scope not granted |
 | `NotFoundException` | `ProviderException` | 404, or an event the provider does not list: nothing under that id |
-| `UnreachableException` | `\RuntimeException` | the provider could not be reached: a network error, a timeout; a copy of the HTTP client's exception is the previous one ([no secret in it](#no-secret-in-a-failure)) |
+| `UsageLimitReachedException` | omnisense/contracts' `UsageLimitReached` | a call refused before it was made: a rate limit of the provider's policy reached, or the provider asked to wait (a 429 and its `Retry-After`); `retryAfter` in seconds when known, `limit` the one reached ([usage policies](policies.md)) |
+| `UnreachableException` | omnisense/contracts' `UnreachableException` | the provider could not be reached: a network error, a timeout; a copy of the HTTP client's exception is the previous one ([no secret in it](#no-secret-in-a-failure)) |
 
 Messages, as `JsonApi` and the providers write them (run on recorded answers on 2026-10-26):
 
@@ -24,7 +25,7 @@ NotSupportedException (0): The "concerts" provider (Omniticket\Ticketmaster\Tick
 NotFoundException (404): Ticketmaster has no event "9": Resource not found with provided criteria (locale=en-us, id=9)
 InvalidKeyException (401): Billetweb refused the credentials (401) for the events: invalid key
 NotSupportedException (0): The "helloasso" provider (Omniticket\HelloAsso\HelloAssoProvider) does not read attendees changed since a moment (its items have no such filter).
-ProviderException (429): Eventbrite answered 429 for event "1": Hourly rate limit has been reached for this token.
+UsageLimitReachedException (0): eventbrite answered 429 Too Many Requests: try again in 120 s.
 InvalidConfigException (0): The "weezevent" provider needs: access_token, or username and password.
 InvalidConfigException (0): The "weezevent" provider needs an HTTP client: give one to WeezeventFactory.
 InvalidConfigException (0): The "billetweb" provider needs: key.
@@ -33,7 +34,9 @@ ProviderException (200): Example answered 200 for it: an answer that is not JSON
 
 The provider's own message is taken from the answer under the names APIs give it
 ([Concepts](concepts.md#supportdata-and-httpjsonapi)). A 429 (a rate limit) is a
-`ProviderException` with code 429. An `events()` listing throws while it is iterated, not when it
+`UsageLimitReachedException` when the provider was built by its factory (its `Backoff` given to
+`JsonApi`), holding the provider's next calls for its `Retry-After`; a `JsonApi` made by hand,
+without one, still throws a `ProviderException` with code 429. An `events()` listing throws while it is iterated, not when it
 is called.
 
 ## No secret in a failure

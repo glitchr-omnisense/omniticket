@@ -39,7 +39,14 @@ $check = $registry->checker('box_office')->check('1235', $scanned); // valid, al
   families.
 - **HTTP**: `Http\JsonApi` calls a JSON API through the injected client and turns failures into
   the family's exceptions (`UnreachableException`, `InvalidKeyException` on 401/403,
-  `NotFoundException` on 404, `ProviderException`); `Support\Data` reads answers with types.
+  `NotFoundException` on 404, `ProviderException`; a 429 is a `UsageLimitReachedException` when
+  the provider's Backoff is given); `Support\Data` reads answers with types.
+- **Kernel**: omnisense/contracts. `Config`, `ProviderFactory`, `Registry`, the exceptions,
+  `Http\Redaction` and the recorded HTTP client are its classes under omniticket's names;
+  `Http\JsonApi` makes its calls through the kernel's `JsonClient`.
+- **Usage policies**: every provider declares its own (`policy.json`: rate limits, rights,
+  provenance), the registry's `catalog()`, `attendees()` and `checker()` guard each call with
+  it, a site tightens it, never loosens it ([docs/policies.md](docs/policies.md)).
 - **Testing**: `Testing\FixedTicketing` (every contract from given events and attendees: an
   application's tests, a demo), `Testing\RecordedHttpClient` (answers by route, requests kept),
   `Testing\LoadCheck` (the bare check every package of the family runs).
@@ -69,6 +76,7 @@ scanning application (the provider's own marks tickets as scanned), an agenda
 - [Events](docs/usage-events.md) and [attendees and checks](docs/usage-attendees.md)
 - [Configuration reference](docs/configuration.md): every provider's options
 - [Errors](docs/errors.md)
+- [Usage policies](docs/policies.md): what each provider declares, the guard, a site's tightening
 - [Testing](docs/testing.md): the fixed provider, the recorded HTTP client, the load check
 - [The harness](docs/harness.md)
 - [Writing a provider](docs/providers.md)

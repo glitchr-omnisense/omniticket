@@ -21,7 +21,7 @@ final class FixedTicketing implements EventCatalogInterface, AttendeeListInterfa
 {
     /**
      * @param list<Event>                   $events
-     * @param array<string, list<Attendee>> $attendees by event id
+     * @param array<array-key, list<Attendee>> $attendees by event id
      */
     public function __construct(private readonly array $events = [], private readonly array $attendees = [])
     {

@@ -13,7 +13,7 @@ final class FixedTicketingFactory extends ProviderFactory
 {
     /**
      * @param list<Event>                   $events
-     * @param array<string, list<Attendee>> $attendees
+     * @param array<array-key, list<Attendee>> $attendees
      */
     public function __construct(private readonly array $events = [], private readonly array $attendees = [])
     {

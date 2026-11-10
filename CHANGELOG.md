@@ -2,6 +2,39 @@
 
 ## [Unreleased]
 
+### Changed
+
+- omnisense/omniticket builds on omnisense/contracts, the kernel every omni family shares.
+  `Config`, `ProviderInterface`, `ProviderFactoryInterface`, `ProviderFactory` (`populate()` and
+  `build()` as before), `Registry`, `Http\Redaction`, `Testing\RecordedHttpClient` (its routes
+  as before, a route's headers besides) and `RecordedResponse` keep their names and their API,
+  each a thin subclass of the kernel's; `OmniticketException` extends the kernel's
+  `ExceptionInterface`, `InvalidConfigException`, `NotSupportedException` and
+  `UnreachableException` its classes. `Http\JsonApi` keeps its API and its exceptions and makes
+  its calls through the kernel's `JsonClient`. `Support\Data` (its readers differ from the
+  kernel's `Data`), `ProviderException` and `Testing\LoadCheck` stay the family's.
+- `Registry::catalog()`, `attendees()` and `checker()` give the provider behind its guard
+  (`Policy\GuardedCatalog`, `GuardedAttendees`, `GuardedChecker`; `inner()` gives the provider),
+  no longer the provider itself; `get()` still does.
+
+### Added
+
+- Usage policies ([docs/policies.md](docs/policies.md)): `Capabilities::policy()`, given
+  (`policy:`) or made of `$terms` and `$limits`, which stay, deprecated. Each guarded call is
+  checked against the provider's rate limits and counted; over one, or while the provider asks
+  to wait (a 429 and its `Retry-After`, a `RateLimit` field with nothing left), it is never made:
+  `Exception\UsageLimitReachedException`. A site tightens a policy (`policy`), says what it is
+  (`usage`); `Registry::policy()`, `policies()`, `guard()`, `names()` by contract, a shared
+  `RateLimiterInterface` as the registry's third argument. `JsonApi` takes the provider's
+  `Backoff`; `Config::guard()` counts a request a provider makes inside an operation (a token).
+- The harness mounts omnisense/contracts' checkout (`OMNISENSE_CONTRACTS`) and runs its tests,
+  and names its entrypoint (the image may be another family's harness tagged).
+
+### Fixed
+
+- `Testing\FixedTicketing` and its factory take attendees by any event id key (an id such as
+  "1" is an integer key in PHP): PHPStan's error in `RegistryTest` gone.
+
 ### Fixed
 
 - No exception `JsonApi::request()` throws keeps its trace's arguments: an error answered (a refused key,

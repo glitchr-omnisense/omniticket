@@ -40,9 +40,11 @@ final class RegistryTest extends TestCase
             'public' => ['factory' => 'catalog', 'options' => ['api_key' => 'example-not-a-key']],
         ]);
 
-        self::assertSame($registry->get('box_office'), $registry->catalog('box_office'));
-        self::assertSame($registry->get('box_office'), $registry->attendees('box_office'));
-        self::assertSame($registry->get('box_office'), $registry->checker('box_office'));
+        foreach ([$registry->catalog('box_office'), $registry->attendees('box_office'), $registry->checker('box_office')] as $guarded) {
+            self::assertInstanceOf(\Omniticket\Policy\Guarded::class, $guarded);
+            self::assertSame($registry->get('box_office'), $guarded->inner(), 'the provider, behind its guard');
+        }
+        self::assertSame($registry->catalog('box_office'), $registry->catalog('box_office'));
         self::assertSame(['box_office', 'public'], $registry->names());
         self::assertSame(['fixed', 'catalog'], $registry->factories());
         self::assertSame(['api_key' => 'example-not-a-key'], $registry->options('public'));

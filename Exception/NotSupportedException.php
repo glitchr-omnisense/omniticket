@@ -2,11 +2,11 @@
 
 namespace Omniticket\Exception;
 
-/** A provider asked for what it cannot do: the attendees of a read-only catalogue, an incremental read it has no filter for. */
-final class NotSupportedException extends \LogicException implements OmniticketException
+/**
+ * A provider asked for what it cannot do: the attendees of a read-only
+ * catalogue, an incremental read it has no filter for (capability(), as
+ * omnisense/contracts words it).
+ */
+final class NotSupportedException extends \Omnisense\Contracts\Exception\NotSupportedException implements OmniticketException
 {
-    public static function capability(object $provider, string $name, string $capability): self
-    {
-        return new self(\sprintf('The "%s" provider (%s) does not %s.', $name, $provider::class, $capability));
-    }
 }

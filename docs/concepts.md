@@ -35,8 +35,9 @@ The contracts, each extending `ProviderInterface`:
 | `check` | bool | `false` | `TicketCheckInterface` |
 | `incremental` | bool | `false` | `attendees()` takes `$updatedSince` |
 | `widget` | bool | `false` | its events carry a purchase module to embed (`Event::$widgetUrl`) |
-| `terms` | `list<string>` | `[]` | the terms whoever runs it must follow (URLs) |
-| `limits` | `list<string>` | `[]` | the rate limits and usage rules the provider states, in words |
+| `terms` | `list<string>` | `[]` | the terms whoever runs it must follow (URLs; deprecated: `policy()->provenance`) |
+| `limits` | `list<string>` | `[]` | the rate limits and usage rules the provider states, in words (deprecated: `policy()->rateLimits`) |
+| `policy` | `?UsagePolicy` | `null` | its usage policy (`policy.json`); made of `terms` and `limits` when null, its limits then unknown |
 
 `contracts()` lists `catalog`, `attendees`, `check` as it has them; `toArray()` all of it. Each
 provider's values are in the [index](index.md#providers) and its own page.

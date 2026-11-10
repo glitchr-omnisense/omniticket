@@ -2,12 +2,14 @@
 
 namespace Omniticket\Http;
 
+use Omnisense\Contracts\Exception\UnreachableException as Unreached;
+use Omnisense\Contracts\Http\JsonClient;
+use Omnisense\Contracts\Policy\Backoff;
 use Omniticket\Exception\InvalidKeyException;
 use Omniticket\Exception\NotFoundException;
 use Omniticket\Exception\ProviderException;
 use Omniticket\Exception\UnreachableException;
 use Omniticket\Support\Data;
-use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 /**
@@ -18,27 +20,39 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
  * InvalidKeyException), nothing there (404: NotFoundException), any other
  * error or an answer that is not JSON (ProviderException) - with the
  * provider's own message when it gives one.
+ *
+ * The exchange is omnisense/contracts' JsonClient (raw(): every status
+ * given back, read here): given the provider's Backoff (Config::backoff()
+ * in a factory's build()), it waits while the provider asked to and reads
+ * every response's Retry-After and RateLimit fields - a 429 is then a
+ * UsageLimitReachedException with the wait asked, and the next calls are
+ * held until it is over. Without one, a 429 is a ProviderException as any
+ * other error.
  */
 final class JsonApi
 {
-    public function __construct(private readonly HttpClientInterface $http, private readonly string $provider)
+    private readonly JsonClient $client;
+
+    public function __construct(HttpClientInterface $http, private readonly string $provider, ?Backoff $backoff = null)
     {
+        $this->client = new JsonClient($http, $provider, [], $backoff);
     }
 
     /** @param array<string, mixed> $options the HTTP client's options (query, headers, json, body, auth_bearer...) */
     public function request(string $method, string $url, array $options = [], string $what = 'the request'): Data
     {
+        $headers = \is_array($options['headers'] ?? null) ? self::headers($options['headers']) : [];
+        unset($options['headers']);
         try {
-            $response = $this->http->request($method, $url, $options);
-            $status = $response->getStatusCode();
-            $body = $response->getContent(false);
-        } catch (TransportExceptionInterface $e) {
-            // The client's message and exception with the request's secrets masked, no trace keeping the options.
-            $secrets = Redaction::secrets($url, $options);
+            $answer = $this->client->raw($method, $url, $options, $headers, range(400, 599));
+        } catch (Unreached $e) {
+            // The kernel's copy of the client's exception, the request's secrets masked; no trace keeping the options.
+            $previous = $e->getPrevious() ?? $e;
 
-            throw Redaction::withoutArguments(new UnreachableException(\sprintf('%s could not be reached for %s: %s', $this->provider, $what, Redaction::text($e->getMessage(), $secrets)), 0, Redaction::copy($e, $secrets)));
+            throw Redaction::withoutArguments(new UnreachableException(\sprintf('%s could not be reached for %s: %s', $this->provider, $what, $previous->getMessage()), 0, $previous));
         }
-        $decoded = json_decode($body, true);
+        $status = $answer->status;
+        $decoded = json_decode($answer->body, true);
         $message = self::message(Data::of($decoded));
         if (401 === $status || 403 === $status) {
             throw Redaction::withoutArguments(InvalidKeyException::refused($this->provider, $what, $status, $message));
@@ -66,5 +80,25 @@ final class JsonApi
         }
 
         return null;
+    }
+
+    /**
+     * @param array<mixed> $headers
+     *
+     * @return array<string, string|list<string>>
+     */
+    private static function headers(array $headers): array
+    {
+        $named = [];
+        foreach ($headers as $name => $value) {
+            if (\is_int($name) && \is_string($value) && str_contains($value, ':')) {
+                [$name, $value] = array_map('trim', explode(':', $value, 2));
+            }
+            if (\is_string($name) && (\is_scalar($value) || \is_array($value))) {
+                $named[$name] = \is_array($value) ? array_values(array_map(static fn ($one) => \is_scalar($one) ? (string) $one : '', $value)) : (string) $value;
+            }
+        }
+
+        return $named;
     }
 }
