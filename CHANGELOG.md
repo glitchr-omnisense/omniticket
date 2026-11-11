@@ -4,6 +4,13 @@
 
 ### Changed
 
+- `Config::guard()` is the kernel's: omniticket's override (the same guard, without the "plan"
+  option) is gone, as omnisense/contracts' round 3 allowed. The kernel's runs the policy under the
+  "plan" option and tightened by "policy", in the registry's limiter, and throws the Backoff's
+  exception, `UsageLimitReachedException` (the factory's `limitException()`). It is in
+  omnisense/contracts since 16c8da1 (1568f2c, what the sites' vendors hold, has it).
+  Tests/PolicyTest expects "1000 an hour", the kernel's wording since 16c8da1.
+
 - omnisense/omniticket builds on omnisense/contracts, the kernel every omni family shares.
   `Config`, `ProviderInterface`, `ProviderFactoryInterface`, `ProviderFactory` (`populate()` and
   `build()` as before), `Registry`, `Http\Redaction`, `Testing\RecordedHttpClient` (its routes

@@ -112,7 +112,7 @@ final class PolicyTest extends TestCase
 
         $new = new Capabilities(catalog: true, policy: self::policy());
         self::assertSame(['https://example.org/terms'], $new->terms);
-        self::assertSame(['1000 a hour'], $new->limits);
+        self::assertSame(['1000 an hour'], $new->limits);
 
         $fixed = new Registry([new FixedTicketingFactory([new Event('1', 'Show')])], ['b' => ['factory' => 'fixed']]);
         self::assertSame('fixed', $fixed->policy('b')->provider);
