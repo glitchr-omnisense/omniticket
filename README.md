@@ -6,6 +6,44 @@ tickets: which events, at which dates and prices, with how many places left and 
 who comes; is this ticket code valid. Plain PHP: no framework in `require`, the application's
 HTTP client injected (Symfony's HTTP client contracts).
 
+## Install and a first call
+
+```sh
+composer require omnisense/omniticket omniticket/billetweb
+```
+
+Every ticketing platform asks for an account: there is no keyless provider in this family. So this
+first call runs on Billetweb's answer recorded (`Omniticket\Testing\RecordedHttpClient` answers in
+place of the API): no account, nothing sent. What a real call needs: Billetweb, a user id and a
+read-only API key from its back office; Eventbrite, a private or OAuth token and the organization's
+id; HelloAsso, the association's client id and secret; Ticketmaster, an API key (a free app on
+developer.ticketmaster.com); Weezevent, a partner API key and the organizer's token.
+
+```php
+<?php
+
+require __DIR__.'/vendor/autoload.php';
+
+use Omniticket\Billetweb\BilletwebFactory;
+use Omniticket\Registry;
+use Omniticket\Testing\RecordedHttpClient;
+
+// Billetweb's answer, recorded: nothing leaves the process. HttpClient::create() and your key for a real call.
+$http = RecordedHttpClient::routes([
+    'GET /api/events' => '[{"id": "1235", "name": "Retro future shock", "start": "2036-12-31 20:00:00", "end": "2037-01-01 02:00:00", "place": "Paris", "shop": "https://www.billetweb.fr/shop.php?event=soiree", "online": "1"}]',
+]);
+$registry = new Registry([new BilletwebFactory($http)], ['box_office' => ['factory' => 'billetweb', 'options' => ['user' => 'recorded', 'key' => 'recorded']]]);
+
+foreach ($registry->catalog('box_office')->events() as $event) {
+    echo $event->title, ' ', $event->start?->format('d/m/Y H:i'), ' ', $event->url, "\n";   // Retro future shock 31/12/2036 20:00 https://www.billetweb.fr/...
+}
+```
+
+`Omniticket\Testing\FixedTicketing` answers every contract from events and attendees it is given:
+an application's tests, a demo.
+
+With a real box office:
+
 ```php
 use Omniticket\Billetweb\BilletwebFactory;
 use Omniticket\Model\EventQuery;
